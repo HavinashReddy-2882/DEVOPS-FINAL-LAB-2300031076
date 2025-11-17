@@ -1,0 +1,53 @@
+services:
+  mysqldb:
+    image: mysql:8
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: exam
+      MYSQL_DATABASE: coursedb
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - springboot-mysql-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-padmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  backend:
+    image: havinashreddy/2300031076-final-backend:latest
+    container_name: taskspringboot
+    # build:
+    #   context: ./springbootbackend
+    #   dockerfile: backend.Dockerfile
+    ports:
+      - "30032:2000"
+    depends_on:
+      - mysqldb
+    restart: on-failure
+    networks:
+      - springboot-mysql-net
+
+  frontend:
+    image: havinashreddy/2300031076-final-frontend:latest
+    container_name: taskreact
+    # build:
+    #   context: ./reactfrontend
+    #   dockerfile: frontend.Dockerfile
+    ports:
+      - "30031:80"
+    depends_on:
+      - backend
+    restart: on-failure
+    networks:
+      - springboot-mysql-net
+
+volumes:
+  mysql_data:
+
+networks:
+  springboot-mysql-net:
